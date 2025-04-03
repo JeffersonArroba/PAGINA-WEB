@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Factura</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+        }
+        .container {
+            width: 80%;
+            margin: auto;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+        }
+        .invoice {
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .invoice ul {
+            list-style: none;
+            padding: 0;
+        }
+        .invoice ul li {
+            padding: 5px;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+        }
+        .total {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Factura</h1>
+        <div class="invoice">
+            <h2>Detalles de la compra</h2>
+            <ul id="invoice-items"></ul>
+            <p class="total">Total: $<span id="invoice-total">0.00</span></p>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // Recuperar el carrito desde localStorage
+            const cart = JSON.parse(localStorage.getItem("cart")) || {};
+            const invoiceItems = document.getElementById("invoice-items");
+            const totalElement = document.getElementById("invoice-total");
+
+            let total = 0;
+
+            // Mostrar los artículos en la factura
+            for (const name in cart) {
+                const item = cart[name];
+                total += item.price * item.quantity;
+                const li = document.createElement("li");
+                li.innerHTML = `${name} - $${item.price.toFixed(2)} x ${item.quantity}`;
+                invoiceItems.appendChild(li);
+            }
+
+            totalElement.textContent = total.toFixed(2);
+
+            // Generar y descargar el PDF automáticamente
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            doc.setFontSize(16);
+            doc.text("Factura", 20, 20);
+
+            let y = 30;
+            for (const name in cart) {
+                const item = cart[name];
+                doc.text(`${name} - $${item.price.toFixed(2)} x ${item.quantity}`, 20, y);
+                y += 10;
+            }
+
+            doc.text(`Total: $${total.toFixed(2)}`, 20, y);
+
+            // Descargar el PDF automáticamente
+            doc.save("factura.pdf");
+
+            // Limpiar el carrito después de la compra (opcional)
+            localStorage.removeItem("cart");
+        });
+    </script>
+</body>
+</html>
